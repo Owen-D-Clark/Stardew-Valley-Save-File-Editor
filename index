@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stardew Valley Save Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Load our JavaScript AFTER the page loads -->
+    <script src="FileSaver.min.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+
+
+<body>
+
+    <h1>Stardew Valley Save Editor</h1>
+
+    <p>
+        Select your Stardew Valley save file (the big XML file, not SaveGameInfo).
+        This is in AppData/Roaming/StardewValley/Saves/"FarmName_#########"/"FarmName_##########"
+    </p>
+
+    <input type="file" id="fileInput">
+
+    <!-- Create the base for tabs-->
+    <h2>Editor</h2>
+    <p>
+        Hover over a specific tab for more information.
+    </p>
+    <!-- Create the buttons for tabs-->
+    <div>
+        <button 
+        id="playerTab"
+        title="Golden Walnuts.
+        Must be between 0 and 130.
+        Values outside limits may break your save.">
+        Player
+        </button>
+        
+        <button id="saveGameTab">Saved Game</button>
+
+        <button 
+        id="friendshipTab"
+        title="Frienships.
+        250 points = 1 heart.
+        NPCs are capped at 10 heart (2500 points)
+        unless they are a marriage candidate in
+        which case they are capped at 8 hearts(2000 Points).
+        once dating the specific NPC increased to 10 Hearts,
+        then 14 Hearts (3500 Points) once married
+        Ensure you do not go over these limits as it may
+        break your save.">
+        Friendships
+        </button>
+    </div>
+
+    <button 
+    id="chestsTab"
+    Title="Auto-Grabbers count as chests">
+    Chests
+    </button>
+
+    <!--Player Tab-->
+    <div id="playerSection" style="display:none;">
+        <h3>Player</h3>
+
+        <ul id="playerProperties"></ul>
+
+        <button id="skillsTab"
+            title="Edit players skills.
+            All skills must be between 0 and 10.
+            Values outside limits may break your save.">
+        Skills
+        </button>
+
+        <button id="statsTab"
+        title = "Edit players stats.
+        Hp and Stamina must be positive numbers and 
+        speed must be between 5 and 15.
+        Values outside limits may break your save.">
+        Stats
+        </button>
+        
+        <div id="skillsSection" style = "display:none; margin-left: 30px;">
+            <ul id="skillsProperties"></ul>
+        </div>
+
+        <div id="statsSection" style = "display:none; margin-left: 30px;">
+            <ul id="statsProperties"></ul>
+        </div>
+    </div>
+
+    <!--Save Game Tab-->
+    <div id="saveGameSection" style="display:none;">
+        <h3>Saved Game</h3>
+        <ul id="saveGameProperties"></ul>
+    </div>
+
+    <!--Friendship Tab-->
+    <div id="friendshipSection" style="display:none;">
+        <h3>Friendships</h3>
+        <ul id="friendshipProperties"></ul>
+    </div>
+
+    <!--Chests Tab-->
+    <div id="chestsSection" style="display:none;">
+        <h3>Chests</h3>
+        <ul id="chestsList"></ul>
+        <div id="chestContents" style="margin-left: 30px;"></div>
+    </div>
+
+    <!--Download edited file-->
+    <p>
+        To save simply download and put the new file in your stardew valley save folder. It will auto replace the old one. 
+    </p>
+    <button id="downloadBtn" disabled>
+        Download Edited Save
+    </button>
+
+
+</body>
+</html>
