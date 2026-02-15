@@ -1,0 +1,424 @@
+//Stores the parsed XML document
+let saveXml = null;
+let filename;
+
+// Grab elements from the HTML
+const fileInput = document.getElementById("fileInput");
+
+const playerProperties = document.getElementById("playerProperties");
+const skillsProperties = document.getElementById("skillsProperties");
+const statsProperties = document.getElementById("statsProperties");
+const saveGameProperties = document.getElementById("saveGameProperties");
+const friendshipProperties = document.getElementById("friendshipProperties");
+
+const playerTab = document.getElementById("playerTab");
+const skillsTab = document.getElementById("skillsTab");
+const statsTab = document.getElementById("statsTab");
+const saveGameTab = document.getElementById("saveGameTab");
+const friendshipTab = document.getElementById("friendshipTab");
+
+const playerSection = document.getElementById("playerSection");
+const skillsSection = document.getElementById("skillsSection");
+const statsSection = document.getElementById("statsSection");
+const saveGameSection = document.getElementById("saveGameSection");
+const friendshipSection = document.getElementById("friendshipSection");
+
+const chestsTab = document.getElementById("chestsTab");
+const chestsSection = document.getElementById("chestsSection");
+const chestsList = document.getElementById("chestsList");
+const chestContents = document.getElementById("chestContents");
+const downloadBtn = document.getElementById("downloadBtn");
+
+//When the user selects a file
+fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    // Read file as text
+    filename = file.name;
+    const text = await file.text();
+
+    console.log(file)
+
+    // Parse XML
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(text, "application/xml");
+
+    // Check for XML errors
+    if (xmlDoc.querySelector("parsererror")) {
+        alert("This file is not valid XML.");
+        return;
+    }
+
+    // Store globally
+    saveXml = xmlDoc;
+
+    // Clear previous UI
+    playerProperties.innerHTML = "";
+    saveGameProperties.innerHTML = "";
+    skillsProperties.innerHTML =  "";
+    statsProperties.innerHTML = "";
+    friendshipProperties.innerHTML = "";
+    // Load some safe properties
+    loadBasicProperties(xmlDoc);
+
+    downloadBtn.disabled = false;
+});
+
+//Toggle Tabs
+function showPlayer() {
+    playerSection.style.display = "";
+    saveGameSection.style.display = "none";
+    friendshipSection.style.display = "none";
+    chestsSection.style.display = "none";
+}
+function showSkills(){
+    skillsSection.style.display = "";
+    statsSection.style.display = "none";
+}
+function showStats(){
+    statsSection.style.display = "";
+    skillsSection.style.display = "none";
+}
+
+function showSaveGame() {
+    playerSection.style.display = "none";
+    saveGameSection.style.display = "";
+    friendshipSection.style.display = "none";
+    chestsSection.style.display = "none";
+}
+function showFriendship(){
+    playerSection.style.display = "none";
+    saveGameSection.style.display = "none";
+    friendshipSection.style.display = "";
+    chestsSection.style.display = "none";
+}
+function showChests() {
+    playerSection.style.display = "none";
+    saveGameSection.style.display = "none";
+    friendshipSection.style.display = "none";
+    chestsSection.style.display = "";
+}
+
+chestsTab.addEventListener("click", showChests);
+playerTab.addEventListener("click", showPlayer);
+skillsTab.addEventListener("click", showSkills);
+statsTab.addEventListener("click", showStats);
+saveGameTab.addEventListener("click", showSaveGame);
+friendshipTab.addEventListener("click", showFriendship);
+
+//Load simple editable text values
+function loadBasicProperties(xml) {
+    const player = xml.querySelector("player");
+    const saveGame = xml.querySelector("SaveGame");
+    if (!player || !saveGame) {
+        alert("Missing player or save game data.");
+        return;
+    }
+
+    //Player Tab
+    addTextField("name", player, playerProperties);
+    addTextField("favoriteThing", player, playerProperties);
+    addTextField("farmName", player, playerProperties);
+    addNumberField("money", player, playerProperties, {
+        min: 0,
+        max: 99999999
+    });
+    addNumberField("goldenWalnuts", saveGame, playerProperties, {
+        min: 0,
+        max: 130
+    }); 
+    addNumberField("qiGems", player, playerProperties, {
+        min: 0,
+        max: 999999999
+    }); 
+    
+
+    //Skills Tab
+    addNumberField("combatLevel", player, skillsProperties, {
+        min: 0,
+        max: 10
+    });
+    addNumberField("farmingLevel", player, skillsProperties, {
+        min: 0,
+        max: 10
+    });
+    addNumberField("fishingLevel", player, skillsProperties, {
+        min: 0,
+        max: 10
+    });
+    addNumberField("foragingLevel", player, skillsProperties, {
+        min: 0,
+        max: 10
+    });
+    addNumberField("miningLevel", player, skillsProperties, {
+        min: 0,
+        max: 10
+    });
+
+    //Stats Tab
+    addNumberField("maxHealth", player, statsProperties, {
+        min: 1,
+        max: 9999
+    });
+    addNumberField("maxStamina", player, statsProperties, {
+        min: 1,
+        max: 9999
+    });
+    addNumberField("Speed", player, statsProperties, {
+        min: 5,
+        max: 15
+    });
+
+    //SaveGame Tab
+    
+
+    //Friendship Tab
+    loadFriendships(xml);
+
+    //Chests Tab
+    loadChests(xml);
+}
+
+//Create a labeled text input bound to an XML node
+function addTextField(tagName, parentNode, targetList) {
+    const node = parentNode.querySelector(tagName);
+    if (!node) return;
+
+    const li = document.createElement("li");
+
+    const label = document.createElement("label");
+    label.textContent = tagName + ": ";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = node.textContent;
+
+    input.addEventListener("input", () => {
+        node.textContent = input.value;
+    });
+
+    label.appendChild(input);
+    li.appendChild(label);
+    targetList.appendChild(li);
+}
+
+//Create a labeled numerical input bound to an XML node
+function addNumberField(tagName, parentNode, targetList, options = {}) {
+    const node = parentNode.querySelector(tagName);
+    if (!node) return;
+
+    const min = options.min ?? -Infinity;
+    const max = options.max ?? Infinity;
+    const onChange = options.onChange;
+
+    const li = document.createElement("li");
+
+    const label = document.createElement("label");
+    label.textContent = tagName + ": ";
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = min;
+    input.max = max;
+    input.value = Number(node.textContent);
+
+    input.addEventListener("change", () => {
+        let value = Number(input.value);
+
+        if (isNaN(value)) {
+            value = Number(node.textContent);
+        }
+
+        // Clamp value
+        value = Math.max(min, Math.min(max, value));
+
+        input.value = value;
+        node.textContent = value;
+
+        if (onChange) {
+            onChange(value);
+        }
+    });
+
+    label.appendChild(input);
+    li.appendChild(label);
+    targetList.appendChild(li);
+}
+
+//add friendships
+function loadFriendships(xml) {
+    friendshipProperties.innerHTML = "";
+
+    const friendshipData = xml.querySelector("friendshipData");
+    if (!friendshipData) {
+        friendshipProperties.innerHTML = "<li>No friendship data found.</li>";
+        return;
+    }
+
+    const items = Array.from(friendshipData.querySelectorAll("item"))
+        .sort((a, b) => {
+            const nameA = a.querySelector("key > string")?.textContent ?? "";
+            const nameB = b.querySelector("key > string")?.textContent ?? "";
+            return nameA.localeCompare(nameB);
+        });
+
+    items.forEach(item => {
+        const nameNode = item.querySelector("key > string");
+        const pointsNode = item.querySelector("value > Friendship > Points");
+
+        if (!nameNode || !pointsNode) return;
+
+        const npcName = nameNode.textContent;
+
+        const li = document.createElement("li");
+
+        const label = document.createElement("label");
+        label.textContent = `${npcName}: `;
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.value = Number(pointsNode.textContent);
+
+        input.addEventListener("change", () => {
+            const value = Number(input.value);
+
+            if (!isNaN(value)) {
+                pointsNode.textContent = value;
+            } else {
+                input.value = pointsNode.textContent;
+            }
+        });
+
+        label.appendChild(input);
+        li.appendChild(label);
+        friendshipProperties.appendChild(li);
+    });
+}
+
+//Load all chests in world
+function loadChests(xml) {
+    chestsList.innerHTML = "";
+    chestContents.innerHTML = "";
+
+    let found = [];
+
+    const gameLocations = xml.querySelectorAll("GameLocation");
+
+    gameLocations.forEach(loc => {
+
+        const objectItems = loc.querySelectorAll("objects > item > value");
+
+        objectItems.forEach(valueNode => {
+
+            // Convert node to string and check type
+            const nodeText = valueNode.outerHTML;
+
+            if (nodeText.includes('xsi:type="Chest"')) {
+                found.push(valueNode);
+            }
+        });
+    });
+
+    if (found.length === 0) {
+        chestsList.innerHTML = "<li>No chests found.</li>";
+        return;
+    }
+
+    found.forEach((chest, index) => {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+
+        button.textContent = `Chest #${index + 1}`;
+
+        button.addEventListener("click", () => {
+            showChestContents(chest, index);
+        });
+
+        li.appendChild(button);
+        chestsList.appendChild(li);
+    });
+}
+
+//Generate contents of every chest
+function showChestContents(chestNode, index) {
+    chestContents.innerHTML = "";
+
+    const items = chestNode.querySelectorAll("items > Item");
+
+    if (items.length === 0) {
+        chestContents.innerHTML = "<li>Chest is empty.</li>";
+        return;
+    }
+
+    items.forEach(item => {
+
+        const nameNode = item.querySelector("name");
+        const idNode = item.querySelector("parentSheetIndex");
+        const stackNode = item.querySelector("stack");
+
+        if (!idNode || !stackNode) return;
+        
+        let idValue = Number(idNode.textContent);
+
+        const li = document.createElement("li");
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = `${nameNode?.textContent ?? "Unknown"} — `;
+        li.appendChild(nameSpan);
+
+        const idInput = document.createElement("input");
+        idInput.type = "number";
+        idInput.value = idValue;
+        idInput.style.width = "70px";
+
+        idInput.addEventListener("change", () => {
+            let value = Number(idInput.value);
+
+            if (isNaN(value)) {
+                value = Number(idNode.textContent);
+            }
+
+            idInput.value = value;
+            idNode.textContent = value;
+        });
+
+        const stackInput = document.createElement("input");
+        stackInput.type = "number";
+        stackInput.min = 0;
+        stackInput.max = 9999;
+        stackInput.value = Number(stackNode.textContent);
+        stackInput.style.width = "70px";
+
+        stackInput.addEventListener("change", () => {
+            let value = Number(stackInput.value);
+
+            if (isNaN(value)) {
+                value = Number(stackNode.textContent);
+            }
+
+            value = Math.max(0, Math.min(9999, value));
+
+            stackInput.value = value;
+            stackNode.textContent = value;
+        });
+
+        li.appendChild(document.createTextNode("ID: "));
+        li.appendChild(idInput);
+        li.appendChild(document.createTextNode(" | Amount: "));
+        li.appendChild(stackInput);
+
+        chestContents.appendChild(li);
+    });
+}
+//Download the modified save file
+downloadBtn.addEventListener("click", () => {
+    if (!saveXml) return;
+
+    const serializer = new XMLSerializer();
+    const xmlString = serializer.serializeToString(saveXml);
+
+    const blob = new Blob([xmlString], { type: "application/octet-stream" });
+    
+    saveAs(blob, filename);
+});
